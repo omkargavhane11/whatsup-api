@@ -55,4 +55,4 @@ app.use("/message", messageRoute);
 // })
 
 
-app.listen(8080, () => console.log("whatsup server started..."));
+app.listen(process.env.PORT, () => console.log("whatsup server started..."));

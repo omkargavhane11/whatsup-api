@@ -27,13 +27,13 @@ router.post("/login", async (req, res) => {
 // user
 router.post("/register", async (req, res) => {
     try {
-        const findUser = await User.findOne({ email: req.body.email })
+        const findUser = await User.findOne({ email: req.body.contact })
 
         if (!findUser) {
             const newUser = await User.create(req.body);
             res.send({ msg: "registration successfull" })
         } else {
-            res.send({ msg: "User already registered with the same email" })
+            res.send({ msg: "User already registered with the same contact number" })
         }
     } catch (error) {
         res.send({ msg: error.message });

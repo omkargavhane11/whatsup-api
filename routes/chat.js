@@ -49,7 +49,8 @@ router.get("/get-chat", async (req, res) => {
 // user's chat
 router.get("/get-chat/:userId", async (req, res) => {
     try {
-        const chats = await Chat.find({ members: { $in: [req.params.userId] } }).populate("members", { password: 0, contactList: 0 });
+        // const chats = await Chat.find({ members: { $in: [req.params.userId] } }).populate("members", { password: 0, contactList: 0 });
+        const chats = [];
         res.send(chats)
     } catch (error) {
         res.send("failed to retrieve chat")

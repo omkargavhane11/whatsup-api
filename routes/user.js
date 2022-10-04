@@ -8,7 +8,7 @@ router.post("/login", async (req, res) => {
     try {
 
         let contactNumber = Number(req.body.contact);
-        const findContact = await User.findOne({ contact: contactNumber });
+        const findContact = await User.findOne({ contact: req.body.contact });
 
         if (findContact) {
             if (findContact.password === req.body.password) {

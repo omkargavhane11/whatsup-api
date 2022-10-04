@@ -22,8 +22,8 @@ router.post("/create-chat", async (req, res) => {
                     members: [req.body.userId, friendId],
                     latestMessage: null
                 });
-                const updateUserId = await User.updateOne({ _id: req.body.userId }, { $push: { chats: findChat._id.toString() } });
-                res.send({ msg: `Chat created with ${req.body.name}` });
+                const updateUserId = await User.updateOne({ _id: req.body.userId }, { $push: { chats: newChat._id.toString() } });
+                // res.send({ msg: `Chat created with ${req.body.name}` });
                 // res.send(newChat);
                 res.send({ msg: `Chat created with ${req.body.name}`, data: newChat });
             }

@@ -16,14 +16,16 @@ router.post("/create-chat", async (req, res) => {
             const findChat = await Chat.findOne({ members: { $in: [req.body.userId, friendId] } });
             if (findChat) {
                 const updateUserId = await User.updateOne({ _id: req.body.userId }, { $push: { chats: findChat._id.toString() } });
-                res.send({ msg: `Chat created with ${req.body.name}` });
+                res.send({ msg: `Chat created with ${req.body.name}`, data: newChat });
             } else {
                 const newChat = await Chat.create({
                     members: [req.body.userId, friendId],
                     latestMessage: null
                 });
-                res.send(newChat);
-                // res.send({ msg: `Chat created with ${req.body.name}` });
+                const updateUserId = await User.updateOne({ _id: req.body.userId }, { $push: { chats: findChat._id.toString() } });
+                res.send({ msg: `Chat created with ${req.body.name}` });
+                // res.send(newChat);
+                res.send({ msg: `Chat created with ${req.body.name}`, data: newChat });
             }
             // console.log(findMobileNumber._id.toString());
         } else {

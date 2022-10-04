@@ -6,7 +6,9 @@ import User from "../models/User.js";
 
 router.post("/login", async (req, res) => {
     try {
-        const findContact = await User.findOne({ contact: req.body.contact });
+
+        let contactNumber = Number(req.body.contact);
+        const findContact = await User.findOne({ contact: contactNumber });
 
         if (findContact) {
             if (findContact.password === req.body.password) {

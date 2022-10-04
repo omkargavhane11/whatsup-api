@@ -32,7 +32,7 @@ router.post("/create-chat", async (req, res) => {
             res.send({ msg: "User not registered with provided mobile number" })
         }
     } catch (error) {
-        res.send({ msg: "failed to create chat" })
+        res.send({ msg: "failed to create chat", error: error.message })
     }
 })
 

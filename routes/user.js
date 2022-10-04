@@ -6,17 +6,17 @@ import User from "../models/User.js";
 
 router.post("/login", async (req, res) => {
     try {
-        const findEmail = await User.findOne({ email: req.body.email });
+        const findContact = await User.findOne({ contact: req.body.contact });
 
-        if (findEmail) {
-            if (findEmail.password === req.body.password) {
-                const { password, ...others } = findEmail._doc;
+        if (findContact) {
+            if (findContact.password === req.body.password) {
+                const { password, ...others } = findContact._doc;
                 res.send({ msg: "success", user: others })
             } else {
                 res.send({ msg: "Invalid credentials" });
             }
         } else {
-            res.send({ msg: "Invalid credentials" });
+            res.send({ msg: "User not found" });
         }
     } catch (error) {
         res.send({ error: error.message });

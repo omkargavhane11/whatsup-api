@@ -10,7 +10,7 @@ router.post("/new-message", async (req, res) => {
         const message = await Message.create(req.body);
 
         // update latest message on chatId
-        const updateChat = await Chat.updateOne({ _id: req.body.chatId }, { $set: { lastMessage: { msg: req.body.message, time: message.createdAt } } });
+        const updateChat = await Chat.updateOne({ _id: req.body.chatId }, { $set: { lastMessage: message } });
 
         res.send({ msg: "message sent" })
 

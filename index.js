@@ -15,7 +15,9 @@ dotenv.config();
 
 // middlewares
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: "https://whatssup.netlify.app" || `http://localhost:${process.env.PORT}`
+}));
 app.use(express.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs');

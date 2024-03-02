@@ -1,12 +1,12 @@
-import express from 'express';
+import express from "express";
 const app = express();
-import cors from 'cors';
+import cors from "cors";
 import connectToMondoDB from "./helper.js";
 import fast2sms from "fast-two-sms";
 import otpGenerator from "otp-generator";
 import dotenv from "dotenv";
 
-// importing routes 
+// importing routes
 import userRoute from "./routes/user.js";
 import chatRoute from "./routes/chat.js";
 import messageRoute from "./routes/message.js";
@@ -15,23 +15,23 @@ dotenv.config();
 
 // middlewares
 app.use(express.json());
-app.use(cors({
+app.use(
+  cors({
     origin: process.env.ORIGIN,
-}));
+  })
+);
+// app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
-app.set('view engine', 'ejs');
-
-
+app.set("view engine", "ejs");
 
 // connecting to mongoDB
 connectToMondoDB();
 
-
+// health check
 app.get("/", (req, res) => {
-    res.send("Whatsup server API")
-})
-
+  res.send("Whatsup server API");
+});
 
 // routes
 app.use("/user", userRoute);
@@ -53,8 +53,9 @@ app.use("/message", messageRoute);
 //         res.send(error);
 //     }
 
-
 // })
-// 
+//
 
-app.listen(process.env.PORT, () => console.log("whatsup server started..."));
+app.listen(process.env.PORT, () =>
+  console.log("whatsup server started on " + process.env.PORT)
+);

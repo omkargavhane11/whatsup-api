@@ -1,42 +1,52 @@
 import express from "express";
-const app = express();
 import cors from "cors";
-import connectToMondoDB from "./helper.js";
 import fast2sms from "fast-two-sms";
 import otpGenerator from "otp-generator";
+import http from "http"; 
 import dotenv from "dotenv";
 
-// importing routes
+// Importing routes
 import userRoute from "./routes/user.js";
 import chatRoute from "./routes/chat.js";
 import messageRoute from "./routes/message.js";
+import connectToMondoDB from "./config/db.config.js";
+import initializeSocket from "./config/socket.config.js"; // Import the socket initialization function
 
 dotenv.config();
 
-// middlewares
-app.use(express.json());
-app.use(
-  cors({
-    origin: process.env.ORIGIN,
-  })
-);
-// app.use(cors());
-app.use(express.urlencoded({ extended: true }));
+const app = express();
+const server = http.createServer(app);
+const PORT = process.env.PORT || 3000; // Default port if not set
 
+// Middlewares
+app.use(express.json());
+app.use(cors());
 app.set("view engine", "ejs");
 
-// connecting to mongoDB
+// Connecting to MongoDB
 connectToMondoDB();
 
-// health check
+// Health check
 app.get("/", (req, res) => {
   res.send("Whatsup server API");
 });
 
-// routes
+// Routes
 app.use("/user", userRoute);
 app.use("/chat", chatRoute);
 app.use("/message", messageRoute);
+
+// Initialize HTTP server
+const socketServer = server.listen(PORT, () =>
+  console.log("Whatsup server started on " + PORT)
+);
+
+// Initialize Socket.IO 
+initializeSocket(socketServer); // Pass the server to the socket initialization function
+
+
+
+//NOTE - use when need fat2sms otp
 
 // app.post("/sendMessage", async (req, res) => {
 //     try {
@@ -56,6 +66,3 @@ app.use("/message", messageRoute);
 // })
 //
 
-app.listen(process.env.PORT, () =>
-  console.log("whatsup server started on " + process.env.PORT)
-);

@@ -2,21 +2,20 @@ import express from "express";
 import cors from "cors";
 import fast2sms from "fast-two-sms";
 import otpGenerator from "otp-generator";
-import http from "http"; 
+import http from "http";
 import dotenv from "dotenv";
 
 // Importing routes
 import userRoute from "./routes/user.js";
 import chatRoute from "./routes/chat.js";
 import messageRoute from "./routes/message.js";
-import connectToMondoDB from "./config/db.config.js";
+import connectToMongoDB from "./config/db.config.js";
 import initializeSocket from "./config/socket.config.js"; // Import the socket initialization function
 
 dotenv.config();
-
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 3000; // Default port if not set
+const PORT = process.env.PORT || 8080; // Default port if not set
 
 // Middlewares
 app.use(express.json());
@@ -24,11 +23,11 @@ app.use(cors());
 app.set("view engine", "ejs");
 
 // Connecting to MongoDB
-connectToMondoDB();
+connectToMongoDB();
 
 // Health check
 app.get("/", (req, res) => {
-  res.send("Whatsup server API");
+  res.status(200).send({ message: "Whatsup server API" });
 });
 
 // Routes
@@ -44,6 +43,7 @@ const socketServer = server.listen(PORT, () =>
 // Initialize Socket.IO 
 initializeSocket(socketServer); // Pass the server to the socket initialization function
 
+export { app };
 
 
 //NOTE - use when need fat2sms otp

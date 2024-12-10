@@ -16,53 +16,92 @@ router.post("/create-chat", async (req, res) => {
             //  find chat of user with friend
             const findChat = await Chat.findOne({ members: { $all: [req.body.userId, friendId] } }).populate("members", { _id: 1, name: 1, contact: 1 });
 
-            // // check if chat already exists in user's chats array
+            // check if chat already exists in user's chats array
             const findUserData = await User.findOne({ _id: req.body.userId });
             if (findUserData.chats.includes(findChat?._id)) {
-                res.send({ msg: "Contact already exists", data: findChat });
+                res.send({ error: true, msg: "Contact already exists", data: findChat });
+                return;
 
             } else {
                 if (findChat) {
                     const updateUserId = await User.updateOne({ _id: req.body.userId }, { $push: { chats: findChat._id.toString() } });
-                    res.send({ msg: `Chat created with ${req.body.name}`, data: findChat });
+                    res.send({ error: false, msg: `Chat created with ${req.body.name}`, data: findChat });
+                    return;
                 } else {
                     const newChat = await Chat.create({
                         members: [req.body.userId, friendId],
                     });
                     const updateUserId = await User.updateOne({ _id: req.body.userId }, { $push: { chats: newChat._id.toString() } });
-                    res.send({ msg: `New Chat created with ${req.body.name}`, data: newChat });
+                    res.send({ error: false, msg: `New Chat created with ${req.body.name}`, data: newChat });
+                    return;
                 }
             }
 
 
         } else {
-            res.send({ msg: "User not registered" })
+            res.send({ error: true, msg: "User not registered" })
         }
     } catch (error) {
-        res.send({ msg: "failed to create chat", error: error.message })
+        res.send({ msg: error.message, error: true })
     }
 })
 
 //  all chats
-router.get("/get-chat", async (req, res) => {
+// router.get("/get-chat", async (req, res) => {
+//     try {
+//         const chats = await Chat.find({}).populate("members", { _id: 1, name: 1, contact: 1 });
+//         if (!chats) {
+//             res.send({ error: true, msg: "failed to retrieve chat", data: [] })
+//         }
+//         res.send({ error: false, chats })
+//     } catch (error) {
+//         res.send({ error: true, msg: "failed to retrieve chat", data: [] })
+//     }
+// })
+
+// get chat by id
+router.get("/get-chat-by-id/:chatId", async (req, res) => {
     try {
-        const chats = await Chat.find({}).populate("members", { _id: 1, name: 1, contact: 1 });
-        res.send(chats)
+        const chat = await Chat.findOne({ _id: req.params.chatId }).populate("members", { _id: 1, name: 1, contact: 1 });;
+        if (!chat) {
+            res.send({ error: true, msg: "failed to retrieve chat", data: null })
+            return;
+        }
+        res.send({ error: false, data: chat })
     } catch (error) {
-        res.send("failed to retrieve chat")
+        res.send({ error: true, msg: "failed to retrieve chat", data: null })
     }
 })
 
-// user's chat
+// get all chats of user
 router.get("/get-chat/:userId", async (req, res) => {
     try {
-        const chats = await Chat.find({ members: { $in: [req.params.userId] } }).populate("members", { _id: 1, name: 1, contact: 1 });
-        // const chats = [];
-        res.send(chats)
+        console.log("req.params.userId :: ", req.params.userId)
+        // update last seen
+        await User.updateOne({ _id: req.params.userId }, { $set: { lastSeen: new Date() } })
+        // get all chats
+        const chats = await Chat.find({ members: { $in: [req.params.userId] } }).populate("members", { _id: 1, name: 1, contact: 1, lastSeen: 1 });
+        if (!chats) {
+            res.send({ error: true, msg: "failed to retrieve chat", data: [] });
+            return;
+        }
+        res.send({error:false, chats})
     } catch (error) {
-        res.send("failed to retrieve chat")
+        res.send({ error: true, msg: error.message, data: [] })
     }
 })
+
+router.put("/update-chat/:chatId", async (req, res) => {
+    try {
+        // update lastMessage of chat to be read
+        await Chat.findOneAndUpdate({ _id: req.params.chatId }, { $set: req.body }).sort({ createdAt: -1 });
+
+    } catch (error) {
+        res.send({ error: true, msg: error.message })
+
+    }
+})
+
 
 
 

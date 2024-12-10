@@ -56,7 +56,7 @@ router.post("/register", async (req, res) => {
     }
 
     // save user to db
-    const newUser = await User.create(req.body);
+    const newUser = await User.create({...req.body, otp: null});
     // reset otp
     optSet[req.params.number] = null;
 

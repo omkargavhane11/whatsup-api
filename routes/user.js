@@ -2,6 +2,7 @@ import express from "express";
 const router = express.Router();
 import User from "../models/User.js";
 import jwt from 'jsonwebtoken';
+import fast2sms from "fast-two-sms";
 import otpGenerator from "otp-generator";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
@@ -56,7 +57,7 @@ router.post("/register", async (req, res) => {
     }
 
     // save user to db
-    const newUser = await User.create({...req.body, otp: null});
+    const newUser = await User.create({ ...req.body, otp: null });
     // reset otp
     optSet[req.params.number] = null;
 
@@ -66,6 +67,39 @@ router.post("/register", async (req, res) => {
     }
 
     res.status(201).json({ error: false, msg: "Registration successfull" });
+
+  } catch (error) {
+    res.send({ error: true, msg: error.message });
+  }
+});
+
+// user
+router.put("/forgot-password", async (req, res) => {
+  try {
+    // find if user exists
+    const findUser = await User.findOne({ contact: req.body.contact });
+    // if not found, return error
+    if (!findUser) {
+      res.send({ error: true, msg: "User not registered with this contact number" });
+      return;
+    }
+    // verify OTP is correct
+    if (optSet[req.body.contact] !== req.body.otp) {
+      res.send({ error: true, msg: "Invalid OTP" });
+      return;
+    }
+
+    // save user to db
+    const userUpdate = await User.updateOne({ _id: findUser?._id }, { $set: { password: req.body.password } });
+    // reset otp
+    optSet[req.params.number] = null;
+
+    if (userUpdate.modifiedCount !== 1) {
+      res.send({ error: true, msg: "Failed to update password" });
+      return;
+    }
+
+    res.status(200).json({ error: false, msg: "Password update successfull" });
 
   } catch (error) {
     res.send({ error: true, msg: error.message });
@@ -82,9 +116,13 @@ router.get("/sendOTP/:number", async (req, res) => {
     optSet[req.params.number] = Number(otp);
     console.log(optSet);
     // send sms
+    var options = { authorization: process.env.F_API_KEY, message: otp, numbers: [Number(req.params.number)] }
+    const send = await fast2sms.sendMessage(options) //Asynchronous Function.
+    console.log("send msg :: ", send)
 
     res.send({ error: false, msg: "OTP sent" });
   } catch (error) {
+    console.log("msg send error :: ", error)
     res.send({ error: true, msg: error });
   }
 });

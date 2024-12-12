@@ -91,6 +91,7 @@ router.get("/get-chat/:userId", async (req, res) => {
     }
 })
 
+
 router.put("/update-chat/:chatId", async (req, res) => {
     try {
         // update lastMessage of chat to be read
@@ -98,7 +99,6 @@ router.put("/update-chat/:chatId", async (req, res) => {
 
     } catch (error) {
         res.send({ error: true, msg: error.message })
-
     }
 })
 

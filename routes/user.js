@@ -4,7 +4,7 @@ import User from "../models/User.js";
 import jwt from 'jsonwebtoken';
 import fast2sms from "fast-two-sms";
 import otpGenerator from "otp-generator";
-
+import bcrypt from 'bcryptjs';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
 
 const optSet = {};
@@ -19,7 +19,8 @@ router.post("/login", async (req, res) => {
     }
 
     // verify password match
-    const isMatch = await userFromDB.comparePassword(req.body.password, userFromDB.password);
+    // const isMatch = await userFromDB.comparePassword(req.body.password, userFromDB.password);
+    const isMatch = bcrypt.compare(req.body.password, userFromDB.password);
 
     if (!isMatch) {
       res.send({ error: true, msg: "Invalid credentials" });
@@ -33,10 +34,11 @@ router.post("/login", async (req, res) => {
     );
 
     const { name, contact, lastSeen, dp, _id } = userFromDB;
-    res.send({ msg: "success", user: { _id, name, contact, lastSeen, dp }, token: jwtToken });
+    res.send({ error: false, msg: "success", user: { _id, name, contact, lastSeen, dp }, token: jwtToken });
 
   } catch (error) {
-    res.send({ error: error.message });
+    console.log("error LL ", error.message)
+    res.send({ error: true, msg: error.message });
   }
 });
 
@@ -76,35 +78,42 @@ router.post("/register", async (req, res) => {
 // user
 router.put("/forgot-password", async (req, res) => {
   try {
-    // find if user exists
+    // Find if user exists
     const findUser = await User.findOne({ contact: req.body.contact });
-    // if not found, return error
     if (!findUser) {
       res.send({ error: true, msg: "User not registered with this contact number" });
       return;
     }
-    // verify OTP is correct
+
+    // Verify OTP is correct
     if (optSet[req.body.contact] !== req.body.otp) {
       res.send({ error: true, msg: "Invalid OTP" });
       return;
     }
 
-    // save user to db
-    const userUpdate = await User.updateOne({ _id: findUser?._id }, { $set: { password: req.body.password } });
-    // reset otp
-    optSet[req.params.number] = null;
+    // Hash the new password manually
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+    // Update user's password
+    const userUpdate = await User.updateOne(
+      { _id: findUser._id },
+      { $set: { password: hashedPassword } }
+    );
+
+    // Reset OTP
+    optSet[req.body.contact] = null;
 
     if (userUpdate.modifiedCount !== 1) {
       res.send({ error: true, msg: "Failed to update password" });
       return;
     }
-
-    res.status(200).json({ error: false, msg: "Password update successfull" });
-
+    res.status(200).json({ error: false, msg: "Password update successful" });
   } catch (error) {
     res.send({ error: true, msg: error.message });
   }
 });
+
 
 // get all users
 router.get("/sendOTP/:number", async (req, res) => {
